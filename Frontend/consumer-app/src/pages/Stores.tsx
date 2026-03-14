@@ -25,6 +25,12 @@ export default function Stores({ user }: { user: User }) {
     setProducts(await res.json());
   };
 
+  const closeStore = () => {
+    setSelectedStore(null);
+    setProducts([]);
+    setCart([]);
+  };
+
   const addToCart = (product: Product) => {
     setCart(prev => {
       const existing = prev.find(i => i.product.id === product.id);
@@ -33,8 +39,19 @@ export default function Stores({ user }: { user: User }) {
     });
   };
 
+  const removeFromCart = (productId: string) => {
+    setCart(prev => prev.filter(i => i.product.id !== productId));
+  };
+
   const placeOrder = async () => {
     if (!selectedStore || cart.length === 0) return;
+
+    if (!selectedStore.isOpen) {
+      setMsg('La tienda está cerrada, no puedes hacer pedidos');
+      setTimeout(() => setMsg(''), 3000);
+      return;
+    }
+
     const res = await fetch(`${API_URL}/orders`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -45,7 +62,7 @@ export default function Stores({ user }: { user: User }) {
       }),
     });
     if (res.ok) {
-      setMsg('¡Pedido creado exitosamente!');
+      setMsg('✅ ¡Pedido creado exitosamente!');
       setCart([]);
       setTimeout(() => setMsg(''), 3000);
     }
@@ -53,64 +70,125 @@ export default function Stores({ user }: { user: User }) {
 
   return (
     <div className="p-6 max-w-5xl mx-auto">
-      {msg && <div className="bg-green-100 text-green-700 p-3 rounded-xl mb-4">{msg}</div>}
+      {msg && (
+        <div className={`p-3 rounded-xl mb-4 text-sm font-medium
+          ${msg.startsWith('❌') ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}`}>
+          {msg}
+        </div>
+      )}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="col-span-1">
-          <h2 className="text-xl font-bold mb-4">Tiendas</h2>
-          {stores.map(store => (
-            <div key={store.id}
-              onClick={() => store.isOpen && selectStore(store)}
-              className={`p-4 rounded-xl mb-3 border cursor-pointer transition
-                ${selectedStore?.id === store.id ? 'border-orange-500 bg-orange-50' : 'border-gray-200'}
-                ${!store.isOpen ? 'opacity-50 cursor-not-allowed' : 'hover:border-orange-300'}`}>
-              <p className="font-semibold">{store.name}</p>
-              <span className={`text-sm ${store.isOpen ? 'text-green-600' : 'text-red-500'}`}>
-                {store.isOpen ? '● Abierta' : '● Cerrada'}
-              </span>
-            </div>
-          ))}
-        </div>
+        <br />
 
+
+        {/* Tiendas */}
+<div className="col-span-1">
+  <h2 className="text-xl font-bold mb-2">🏪 Tiendas</h2>
+  <p className="text-gray-400 text-sm mb-4">Selecciona una tienda:</p>
+  {stores.map(store => (
+    <button
+      key={store.id}
+      onClick={() => store.isOpen && selectStore(store)}
+      disabled={!store.isOpen}
+      className={`w-full text-left p-5 rounded-xl mb-5 transition font-medium flex justify-between items-center
+        ${selectedStore?.id === store.id
+          ? 'bg-orange-500 text-white shadow-lg shadow-orange-200'
+          : store.isOpen
+            ? 'bg-white border border-gray-200 text-gray-700 hover:bg-orange-50 hover:border-orange-300'
+            : 'bg-gray-100 border border-gray-200 text-gray-400 cursor-not-allowed opacity-60'}`}>
+      <span>{store.name}</span>
+      <span className={`text-xs font-semibold px-2 py-1 rounded-full
+        ${selectedStore?.id === store.id
+          ? 'bg-white/20 text-white'
+          : store.isOpen
+            ? 'bg-green-100 text-green-600'
+            : 'bg-red-100 text-red-500'}`}>
+        {store.isOpen ? '🟢 Abierta' : '🔴 Cerrada'}
+      </span>
+    </button>
+  ))}
+</div>
+
+        {/* Productos */}
         <div className="col-span-1">
-          <h2 className="text-xl font-bold mb-4">
-            {selectedStore ? `Productos - ${selectedStore.name}` : 'Selecciona una tienda'}
-          </h2>
-          {products.map(p => (
-            <div key={p.id} className="flex justify-between items-center p-3 border rounded-xl mb-2">
-              <div>
-                <p className="font-medium">{p.name}</p>
-                <p className="text-orange-600 font-semibold">${p.price}</p>
+          {selectedStore ? (
+            <>
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-xl font-bold">Aqui estan los productos de {selectedStore.name}</h2>
+                <button
+                  onClick={closeStore}
+                  className="text-sm text-gray-400 hover:text-red-500 hover:bg-red-50 px-3 py-1.5 rounded-xl transition border border-gray-200 hover:border-red-200">
+                  ✕ Cerrar
+                </button>
               </div>
-              <button onClick={() => addToCart(p)}
-                className="bg-orange-500 text-white px-3 py-1 rounded-lg hover:bg-orange-600">
-                +
-              </button>
+              {products.length === 0 ? (
+                <p className="text-gray-400 text-sm">Esta tienda no tiene productos aún</p>
+              ) : (
+                products.map(p => (
+                  <div key={p.id} className="flex justify-between items-center p-4 bg-white border border-gray-100 rounded-xl mb-3 shadow-sm hover:shadow-md transition">
+                    <div>
+                      <p className="font-medium text-gray-700">{p.name}</p>
+                      <p className="text-orange-500 font-bold">${p.price}</p>
+                    </div>
+                    <button
+                      onClick={() => addToCart(p)}
+                      className="bg-orange-500 text-white w-9 h-9 rounded-xl hover:bg-orange-600 active:scale-95 transition text-lg font-bold">
+                      +
+                    </button>
+                  </div>
+                ))
+              )}
+              <br />
+            </>
+          ) : (
+            <div className="flex flex-col items-center justify-center h-full text-center py-12 text-gray-300">
+              <div className="text-5xl mb-3"> <br />
+              </div>
+              <p className="text-sm">Selecciona una tienda para ver sus productos</p>
             </div>
-          ))}
+          )}
         </div>
 
+        {/* Carrito */}
         <div className="col-span-1">
-          <h2 className="text-xl font-bold mb-4">Carrito</h2>
+          <h2 className="text-xl font-bold mb-4">🛒 Carrito</h2>
           {cart.length === 0 ? (
-            <p className="text-gray-400">Tu carrito está vacío</p>
+            <div className="flex flex-col items-center justify-center text-center py-12 text-gray-300">
+              <div className="text-5xl mb-3"> <br />
+              </div>
+              <p className="text-sm">Tu carrito está vacío</p>
+            </div>
           ) : (
             <>
-              {cart.map(item => (
-                <div key={item.product.id} className="flex justify-between p-2 border-b">
-                  <span>{item.product.name} x{item.qty}</span>
-                  <span className="text-orange-600">${item.product.price * item.qty}</span>
-                </div>
-              ))}
-              <div className="mt-3 font-bold text-right">
-                Total: ${cart.reduce((sum, i) => sum + i.product.price * i.qty, 0)}
+              <div className="flex flex-col gap-2 mb-4">
+                {cart.map(item => (
+                  <div key={item.product.id} className="flex justify-between items-center p-3 bg-white border border-gray-100 rounded-xl shadow-sm">
+                    <div>
+                      <p className="font-medium text-gray-700 text-sm">{item.product.name}</p>
+                      <p className="text-orange-500 font-semibold text-sm">x{item.qty} — ${item.product.price * item.qty}</p>
+                    </div>
+                    <button
+                      onClick={() => removeFromCart(item.product.id)}
+                      className="text-gray-300 hover:text-red-500 hover:bg-red-50 w-8 h-8 rounded-lg transition text-lg">
+                      ✕
+                    </button>
+                  </div>
+                ))}
               </div>
-              <button onClick={placeOrder}
-                className="w-full mt-4 bg-orange-500 text-white py-3 rounded-xl font-semibold hover:bg-orange-600">
-                Hacer Pedido
+              <div className="flex justify-between items-center p-4 bg-orange-50 rounded-xl mb-4">
+                <span className="font-semibold text-gray-700">Total</span>
+                <span className="font-bold text-orange-600 text-lg">
+                  ${cart.reduce((sum, i) => sum + i.product.price * i.qty, 0)}
+                </span>
+              </div>
+              <button
+                onClick={placeOrder}
+                className="w-full bg-orange-500 text-white py-4 rounded-xl font-semibold hover:bg-orange-600 active:scale-95 transition shadow-lg shadow-orange-200">
+                Hacer Pedido 🚀
               </button>
             </>
           )}
         </div>
+
       </div>
     </div>
   );

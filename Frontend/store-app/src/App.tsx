@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import Login from './pages/login';
-import Register from './pages/register';
+import Login from './pages/Login';
+import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
 
 export type User = { id: string; name: string; email: string; role: string };

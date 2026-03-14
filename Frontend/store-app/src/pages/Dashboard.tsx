@@ -54,86 +54,129 @@ export default function Dashboard({ user, onLogout }: { user: User; onLogout: ()
     loadProducts(store.id);
   };
 
-  if (!store) return <p className="p-6 text-gray-500">Cargando tienda...</p>;
+  if (!store) return (
+    <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <p className="text-gray-400 text-lg">Cargando tienda...</p>
+    </div>
+  );
 
   return (
-    <div>
-      <nav className="bg-green-600 text-white p-4 flex justify-between items-center">
-        <div>
+    <div className="min-h-screen bg-gray-50">
+      {/* Navbar */}
+      <nav className="bg-green-600 text-white px-6 py-4 flex justify-between items-center shadow-md">
+        <div className="flex flex-col gap-1">
           <h1 className="font-bold text-xl">🏪 {store.name}</h1>
           <span className={`text-sm ${store.isOpen ? 'text-green-200' : 'text-red-200'}`}>
-            {store.isOpen ? '● Abierta' : '● Cerrada'}
+            {store.isOpen ? '🟢 Abierta' : '🔴 Cerrada'}
           </span>
         </div>
-        <div className="flex gap-3 items-center">
-          <button onClick={toggleStore}
-            className={`px-4 py-2 rounded-xl font-semibold text-sm
-              ${store.isOpen ? 'bg-red-500 hover:bg-red-600' : 'bg-green-400 hover:bg-green-500'}`}>
-            {store.isOpen ? 'Cerrar Tienda' : 'Abrir Tienda'}
+        <div className="flex gap-4 items-center">
+          <button
+            onClick={toggleStore}
+            className={`px-5 py-2.5 rounded-xl font-semibold text-sm transition active:scale-95
+              ${store.isOpen
+                ? 'bg-red-500 hover:bg-red-600 shadow-lg shadow-red-900/20'
+                : 'bg-green-400 hover:bg-green-500 shadow-lg shadow-green-900/20'}`}>
+            {store.isOpen ? '🔴 Cerrar Tienda' : '🟢 Abrir Tienda'}
           </button>
-          <button onClick={onLogout} className="hover:underline text-sm">Salir</button>
+          <button
+            onClick={onLogout}
+            className="px-5 py-2.5 rounded-xl font-semibold text-sm bg-white/20 hover:bg-white/30 transition">
+            Salir
+          </button>
         </div>
       </nav>
 
-      <div className="max-w-4xl mx-auto p-6">
-        <div className="flex gap-4 mb-6">
-          <button onClick={() => setTab('products')}
-            className={`px-4 py-2 rounded-xl font-medium ${tab === 'products' ? 'bg-green-600 text-white' : 'bg-gray-100'}`}>
-            Productos
+      <div className="max-w-4xl mx-auto p-8">
+
+        {/* Tabs */}
+        <div className="flex gap-3 mb-8">
+          <button
+            onClick={() => setTab('products')}
+            className={`px-6 py-3 rounded-xl font-semibold transition
+              ${tab === 'products'
+                ? 'bg-green-600 text-white shadow-lg shadow-green-200'
+                : 'bg-white text-gray-500 hover:bg-gray-100 border border-gray-200'}`}>
+            📦 Productos
           </button>
-          <button onClick={() => setTab('orders')}
-            className={`px-4 py-2 rounded-xl font-medium ${tab === 'orders' ? 'bg-green-600 text-white' : 'bg-gray-100'}`}>
-            Pedidos ({orders.length})
+          <button
+            onClick={() => setTab('orders')}
+            className={`px-6 py-3 rounded-xl font-semibold transition
+              ${tab === 'orders'
+                ? 'bg-green-600 text-white shadow-lg shadow-green-200'
+                : 'bg-white text-gray-500 hover:bg-gray-100 border border-gray-200'}`}>
+            🧾 Pedidos ({orders.length})
           </button>
         </div>
 
+        {/* Productos */}
         {tab === 'products' && (
-          <div>
-            <div className="bg-white border rounded-2xl p-5 mb-6">
-              <h3 className="font-bold mb-3">Agregar Producto</h3>
-              <div className="flex gap-3">
-                <input className="flex-1 border p-3 rounded-xl" placeholder="Nombre del producto"
-                  value={newProduct.name} onChange={e => setNewProduct({...newProduct, name: e.target.value})} />
-                <input className="w-32 border p-3 rounded-xl" placeholder="Precio"
-                  type="number" value={newProduct.price} onChange={e => setNewProduct({...newProduct, price: e.target.value})} />
-                <button onClick={createProduct}
-                  className="bg-green-600 text-white px-5 rounded-xl hover:bg-green-700">
-                  Agregar
+          <div className="flex flex-col gap-6">
+            <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm">
+              <h3 className="font-bold text-gray-700 mb-4 text-lg">Agregar Producto</h3>
+              <div className="flex flex-col sm:flex-row gap-3">
+                <input
+                  className="flex-1 border border-gray-200 bg-gray-50 p-3.5 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-400 transition"
+                  placeholder="Nombre del producto"
+                  value={newProduct.name}
+                  onChange={e => setNewProduct({...newProduct, name: e.target.value})} />
+                <input
+                  className="w-full sm:w-36 border border-gray-200 bg-gray-50 p-3.5 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-400 transition"
+                  placeholder="Precio"
+                  type="number"
+                  value={newProduct.price}
+                  onChange={e => setNewProduct({...newProduct, price: e.target.value})} />
+                <button
+                  onClick={createProduct}
+                  className="bg-green-600 text-white px-6 py-3.5 rounded-xl hover:bg-green-700 active:scale-95 transition font-semibold flex items-center justify-center shadow-lg shadow-green-200">
+                  + Agregar
                 </button>
               </div>
             </div>
+
             {products.length === 0 ? (
-              <p className="text-gray-400">No hay productos aún</p>
+              <div className="text-center py-12 text-gray-400">
+                <div className="text-4xl mb-3">📦</div>
+                <p>No hay productos aún</p>
+              </div>
             ) : (
-              products.map(p => (
-                <div key={p.id} className="flex justify-between items-center p-4 border rounded-xl mb-2">
-                  <span className="font-medium">{p.name}</span>
-                  <span className="text-green-600 font-bold">${p.price}</span>
-                </div>
-              ))
+              <div className="flex flex-col gap-3">
+                {products.map(p => (
+                  <div key={p.id} className="flex justify-between items-center p-5 bg-white border border-gray-100 rounded-2xl shadow-sm hover:shadow-md transition">
+                    <span className="font-medium text-gray-700">{p.name}</span>
+                    <span className="text-green-600 font-bold text-lg">${p.price}</span>
+                  </div>
+                ))}
+              </div>
             )}
           </div>
         )}
 
+        {/* Pedidos */}
         {tab === 'orders' && (
-          <div>
+          <div className="flex flex-col gap-4">
             {orders.length === 0 ? (
-              <p className="text-gray-400">No hay pedidos aún</p>
+              <div className="text-center py-12 text-gray-400">
+                <div className="text-4xl mb-3">🧾</div>
+                <p>No hay pedidos aún</p>
+              </div>
             ) : (
               orders.map(order => (
-                <div key={order.id} className="bg-white border rounded-2xl p-5 mb-4">
-                  <div className="flex justify-between mb-2">
-                    <p className="font-semibold">Pedido #{order.id.slice(0, 8)}</p>
-                    <span className="px-3 py-1 bg-yellow-100 text-yellow-700 rounded-full text-sm">
+                <div key={order.id} className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm">
+                  <div className="flex justify-between items-center mb-4">
+                    <p className="font-semibold text-gray-700">Pedido #{order.id.slice(0, 8)}</p>
+                    <span className="px-3 py-1.5 bg-yellow-100 text-yellow-700 rounded-full text-sm font-medium">
                       {order.status}
                     </span>
                   </div>
-                  {order.order_items?.map((item: any) => (
-                    <p key={item.id} className="text-sm text-gray-600">
-                      {item.products?.name} x{item.quantity}
-                    </p>
-                  ))}
-                  <p className="text-xs text-gray-400 mt-2">
+                  <div className="flex flex-col gap-1 mb-3">
+                    {order.order_items?.map((item: any) => (
+                      <p key={item.id} className="text-sm text-gray-600">
+                        • {item.products?.name} x{item.quantity}
+                      </p>
+                    ))}
+                  </div>
+                  <p className="text-xs text-gray-400 border-t border-gray-100 pt-3">
                     {new Date(order.createdAt).toLocaleString()}
                   </p>
                 </div>
