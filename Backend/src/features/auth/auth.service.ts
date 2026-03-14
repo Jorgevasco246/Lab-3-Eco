@@ -1,41 +1,33 @@
-import { AuthenticateUserDTO, CreateUserDTO } from './auth.types';
-import Boom from '@hapi/boom';
 import { supabase } from '../../config/supabase';
-import { AuthResponse, AuthTokenResponsePassword } from '@supabase/supabase-js';
+import { CreateUserDTO } from './auth.types';
 
-export const authenticateUserService = async (
-  credentials: AuthenticateUserDTO
-): Promise<AuthTokenResponsePassword['data']> => {
-  const signInResponse = await supabase.auth.signInWithPassword({
-    email: credentials.email,
-    password: credentials.password,
-  });
+export const createUserService = async (data: CreateUserDTO) => {
+  // 1. Crear el usuario en la tabla 'users'
+  const { data: newUser, error: userError } = await supabase
+    .from('users')
+    .insert([{ 
+      name: data.name, 
+      email: data.email, 
+      password: data.password, // En un proyecto real, ¡encripta esto!
+      role: data.role 
+    }])
+    .select()
+    .single();
 
-  if (signInResponse.error) {
-    throw Boom.unauthorized(signInResponse.error.message);
+  if (userError) throw new Error(userError.message);
+
+  // 2. Si el rol es 'store', crear la tienda automáticamente 
+  if (data.role === 'store') {
+    const { error: storeError } = await supabase
+      .from('stores')
+      .insert([{ 
+        name: data.storeName, // Este campo debe venir del req.body
+        userId: newUser.id,
+        isOpen: false // Por defecto cerrada [cite: 14, 45]
+      }]);
+
+    if (storeError) throw new Error(storeError.message);
   }
 
-  return signInResponse.data;
-};
-
-export const createUserService = async (
-  user: CreateUserDTO
-): Promise<AuthResponse['data']> => {
-  const signUpResponse = await supabase.auth.signUp({
-    email: user.email,
-    password: user.password,
-    options: {
-      data: {
-        name: user.name,
-        address: user.address,
-        role: user.role,
-      },
-    },
-  });
-
-  if (signUpResponse.error) {
-    throw Boom.badRequest(signUpResponse.error.message);
-  }
-
-  return signUpResponse.data;
+  return newUser;
 };

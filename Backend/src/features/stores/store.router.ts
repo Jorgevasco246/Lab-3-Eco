@@ -9,7 +9,8 @@ export class AuthRouter {
     this.router = Router();
     this.authController = authController;
 
-    this.router.post("/auth/register", this.authController.register);
-    this.router.post("/auth/login", this.authController.login);
+    this.router.get("/stores", this.storeController.getStores);
+this.router.post("/stores", this.storeController.createStore);
+this.router.patch("/stores/:id/open", this.storeController.openStore);
   }
 }
