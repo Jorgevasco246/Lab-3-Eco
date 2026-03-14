@@ -11,10 +11,27 @@ export type User = { id: string; name: string; email: string; role: string };
 
 function App() {
   const [page, setPage] = useState<Page>('login');
-  const [user, setUser] = useState<User | null>(null);
-  const [selectedRole, setSelectedRole] = useState<Role>(null);
+  const [user, setUser] = useState<User | null>(() => {
+    const saved = localStorage.getItem('user');
+    return saved ? JSON.parse(saved) : null;
+  });
+  const [selectedRole, setSelectedRole] = useState<Role>(() => {
+    const saved = localStorage.getItem('user');
+    return saved ? 'consumer' : null;
+  });
 
-  // Pantalla de selección de rol
+  const handleLogin = (u: User) => {
+    localStorage.setItem('user', JSON.stringify(u));
+    setUser(u);
+    setPage('stores');
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('user');
+    setUser(null);
+    setSelectedRole(null);
+  };
+
   if (!selectedRole) {
     return (
       <div className="min-h-screen bg-orange-50 flex items-center justify-center">
@@ -28,15 +45,15 @@ function App() {
               🛒 Soy Consumidor
             </button>
             <button
-  onClick={() => window.open('https://lab-3-eco-mv2m.vercel.app/', '_blank')}
-  className="w-full bg-green-600 text-white py-4 rounded-xl font-semibold text-lg hover:bg-green-700 transition">
-  🏪 Soy Tienda
-      </button>
-           <button
-  onClick={() => window.open('https://lab-3-eco-vvsl.vercel.app/', '_blank')}
-  className="w-full bg-blue-600 text-white py-4 rounded-xl font-semibold text-lg hover:bg-blue-700 transition">
-  🚴 Soy Repartidor
-</button>
+              onClick={() => window.open('https://lab-3-eco-mv2m.vercel.app/', '_blank')}
+              className="w-full bg-green-600 text-white py-4 rounded-xl font-semibold text-lg hover:bg-green-700 transition">
+              🏪 Soy Tienda
+            </button>
+            <button
+              onClick={() => window.open('https://lab-3-eco-vvsl.vercel.app/', '_blank')}
+              className="w-full bg-blue-600 text-white py-4 rounded-xl font-semibold text-lg hover:bg-blue-700 transition">
+              🚴 Soy Repartidor
+            </button>
           </div>
         </div>
       </div>
@@ -48,7 +65,7 @@ function App() {
       return <Register onSuccess={() => setPage('login')} onLogin={() => setPage('login')} />;
     return (
       <Login
-        onSuccess={(u) => { setUser(u); setPage('stores'); }}
+        onSuccess={handleLogin}
         onRegister={() => setPage('register')}
         onBack={() => setSelectedRole(null)}
       />
@@ -62,7 +79,7 @@ function App() {
         <div className="flex gap-4">
           <button onClick={() => setPage('stores')} className="hover:underline">Tiendas</button>
           <button onClick={() => setPage('my-orders')} className="hover:underline">Mis Pedidos</button>
-          <button onClick={() => { setUser(null); setSelectedRole(null); }} className="hover:underline">Salir</button>
+          <button onClick={handleLogout} className="hover:underline">Salir</button>
         </div>
       </nav>
       {page === 'stores' && <Stores user={user} />}
