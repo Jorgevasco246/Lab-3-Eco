@@ -1,19 +1,10 @@
-import { Router } from "express";
-import { authMiddleware, checkRole } from "../../middlewares/authMiddleware";
-// ... otras importaciones
+import { Router } from 'express';
+import {
+  createProductController,
+  getProductsByStoreController,
+} from './product.controller';
 
-// Solo las tiendas pueden crear productos
-this.router.post(
-  "/products", 
-  authMiddleware,           // ¿Está logueado?
-  checkRole(['store']),     // ¿Es una tienda? [cite: 14]
-  this.productController.createProduct
-);
+export const router = Router();
 
-// Los consumidores pueden ver productos
-this.router.get(
-  "/stores/:id/products", 
-  authMiddleware, 
-  checkRole(['consumer']),  // [cite: 13]
-  this.productController.getProducts
-);
+router.post('/', createProductController);
+router.get('/store/:storeId', getProductsByStoreController);

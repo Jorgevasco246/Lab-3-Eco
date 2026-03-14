@@ -1,15 +1,7 @@
-import { Router } from "express";
-import { AuthController } from "./auth.controller";
+import { Router } from 'express';
+import { loginController, registerController } from './auth.controller';
 
-export class AuthRouter {
-  public router: Router;
-  private authController: AuthController;
+export const router = Router();
 
-  constructor(authController: AuthController) {
-    this.router = Router();
-    this.authController = authController;
-
-    this.router.post("/auth/register", this.authController.register);
-    this.router.post("/auth/login", this.authController.login);
-  }
-}
+router.post('/register', registerController);
+router.post('/login', loginController);

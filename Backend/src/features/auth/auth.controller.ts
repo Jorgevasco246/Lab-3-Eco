@@ -3,55 +3,26 @@ import Boom from '@hapi/boom';
 import { authenticateUserService, createUserService } from './auth.service';
 import { UserRole } from './auth.types';
 
-export const authenticateUserController = async (
-  req: Request,
-  res: Response
-) => {
-  if (!req.body) {
-    throw Boom.badRequest('Request body is required');
-  }
+export const registerController = async (req: Request, res: Response) => {
+  const { email, password, role, name, storeName } = req.body;
 
+  if (!email) throw Boom.badRequest('Email is required');
+  if (!password) throw Boom.badRequest('Password is required');
+  if (!name) throw Boom.badRequest('Name is required');
+  if (!Object.values(UserRole).includes(role))
+    throw Boom.badRequest(`Role must be: ${Object.values(UserRole).join(', ')}`);
+  if (role === 'store' && !storeName)
+    throw Boom.badRequest('Store name is required for store role');
+
+  const user = await createUserService({ email, password, role, name, storeName });
+  return res.status(201).json(user);
+};
+
+export const loginController = async (req: Request, res: Response) => {
   const { email, password } = req.body;
-
-  if (email === undefined) {
-    throw Boom.badRequest('Email is required');
-  }
-
-  if (password === undefined) {
-    throw Boom.badRequest('Password is required');
-  }
+  if (!email) throw Boom.badRequest('Email is required');
+  if (!password) throw Boom.badRequest('Password is required');
 
   const user = await authenticateUserService({ email, password });
   return res.json(user);
-};
-
-export const createUserController = async (req: Request, res: Response) => {
-  if (!req.body) {
-    throw Boom.badRequest('Request body is required');
-  }
-
-  const { email, password, role, name, address } = req.body;
-
-  if (email === undefined) {
-    throw Boom.badRequest('Email is required');
-  }
-
-  if (password === undefined) {
-    throw Boom.badRequest('Password is required');
-  }
-
-  if (!Object.values(UserRole).includes(role)) {
-    throw Boom.badRequest(
-      `Role must be one of: ${Object.values(UserRole).join(', ')}`
-    );
-  }
-
-  const user = await createUserService({
-    email,
-    password,
-    role,
-    name,
-    address,
-  });
-  return res.status(201).json(user);
 };

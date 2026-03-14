@@ -1,13 +1,12 @@
 export interface Product {
-  id: string; // UUID
+  id: string;
   name: string;
   price: number;
-  storeId: string; // FK
+  storeId: string;
 }
 
-// Lo que el usuario envía para crear un producto
 export interface CreateProductDTO {
   name: string;
   price: number;
-  storeId: string; 
+  storeId: string;
 }

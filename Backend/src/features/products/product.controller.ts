@@ -1,31 +1,20 @@
 import { Request, Response } from 'express';
-import { ProductService } from './product.service';
+import Boom from '@hapi/boom';
+import { createProductService, getProductsByStoreService } from './product.service';
+import { CreateProductDTO } from './product.types';
+import { getParam } from '../../utils/params';
 
-export class ProductController {
-  private productService: ProductService;
+export const createProductController = async (req: Request, res: Response) => {
+  const { name, price, storeId }: CreateProductDTO = req.body;
+  if (!name) throw Boom.badRequest('name is required');
+  if (!price) throw Boom.badRequest('price is required');
+  if (!storeId) throw Boom.badRequest('storeId is required');
+  const product = await createProductService({ name, price, storeId });
+  return res.status(201).json(product);
+};
 
-  constructor(productService: ProductService) {
-    this.productService = productService;
-  }
-
-  // Usamos arrow functions para no perder el contexto de 'this'
-  createProduct = async (req: Request, res: Response) => {
-    try {
-      const productData = req.body;
-      const newProduct = await this.productService.createProduct(productData);
-      res.status(201).json(newProduct);
-    } catch (error: any) {
-      res.status(400).json({ error: error.message });
-    }
-  };
-
-  getProducts = async (req: Request, res: Response) => {
-    try {
-      const storeId = req.params.id; // viene de /stores/:id/products
-      const products = await this.productService.getProductsByStore(storeId);
-      res.status(200).json(products);
-    } catch (error: any) {
-      res.status(400).json({ error: error.message });
-    }
-  };
-}
+export const getProductsByStoreController = async (req: Request, res: Response) => {
+  const storeId = getParam(req.params.storeId);
+  const products = await getProductsByStoreService(storeId);
+  return res.json(products);
+};

@@ -1,28 +1,20 @@
-import { supabase } from '../../config/supabase'; // Asumiendo que exportas tu cliente de DB aquí
-import { CreateProductDTO } from './product.types';
+import { supabase } from '../../config/supabase';
 
-export class ProductService {
-  
-  async createProduct(data: CreateProductDTO) {
-    // Inserta en la tabla 'products' según tu modelo de datos
-    const { data: newProduct, error } = await supabase
-      .from('products')
-      .insert([
-        { name: data.name, price: data.price, storeId: data.storeId }
-      ])
-      .select();
+export const createProductService = async (data: { name: string; price: number; storeId: string }) => {
+  const { data: product, error } = await supabase
+    .from('products')
+    .insert([data])
+    .select()
+    .single();
+  if (error) throw new Error(error.message);
+  return product;
+};
 
-    if (error) throw new Error(error.message);
-    return newProduct;
-  }
-
-  async getProductsByStore(storeId: string) {
-    const { data: products, error } = await supabase
-      .from('products')
-      .select('*')
-      .eq('storeId', storeId);
-
-    if (error) throw new Error(error.message);
-    return products;
-  }
-}
+export const getProductsByStoreService = async (storeId: string) => {
+  const { data, error } = await supabase
+    .from('products')
+    .select('*')
+    .eq('storeId', storeId);
+  if (error) throw new Error(error.message);
+  return data;
+};

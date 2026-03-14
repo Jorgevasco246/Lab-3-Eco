@@ -1,17 +1,18 @@
-import { Router } from "express";
-import { AuthController } from "./auth.controller";
+import { Router } from 'express';
+import {
+  createOrderController,
+  getOrdersByConsumerController,
+  getOrdersByStoreController,
+  getAvailableOrdersController,
+  getAcceptedOrdersByDeliveryController,
+  updateOrderStatusController,
+} from './order.controller';
 
-export class AuthRouter {
-  public router: Router;
-  private authController: AuthController;
+export const router = Router();
 
-  constructor(authController: AuthController) {
-    this.router = Router();
-    this.authController = authController;
-
-    this.router.post("/orders", this.orderController.createOrder);
-this.router.get("/orders/consumer", this.orderController.getConsumerOrders);
-this.router.get("/orders/available", this.orderController.getAvailableOrders);
-this.router.patch("/orders/:id/accept", this.orderController.acceptOrder);
-  }
-}
+router.post('/', createOrderController);
+router.get('/available', getAvailableOrdersController);
+router.get('/consumer/:consumerId', getOrdersByConsumerController);
+router.get('/store/:storeId', getOrdersByStoreController);
+router.get('/delivery/:deliveryId', getAcceptedOrdersByDeliveryController);
+router.patch('/:id/status', updateOrderStatusController);
