@@ -28,15 +28,15 @@ function App() {
               🛒 Soy Consumidor
             </button>
             <button
-              onClick={() => window.open('http://localhost:5174', '_blank')}
-              className="w-full bg-green-600 text-white py-4 rounded-xl font-semibold text-lg hover:bg-green-700 transition">
-              🏪 Soy Tienda
-            </button>
-            <button
-              onClick={() => window.open('http://localhost:5175', '_blank')}
-              className="w-full bg-blue-600 text-white py-4 rounded-xl font-semibold text-lg hover:bg-blue-700 transition">
-              🚴 Soy Repartidor
-            </button>
+  onClick={() => window.open('https://lab-3-eco-mv2m.vercel.app/', '_blank')}
+  className="w-full bg-green-600 text-white py-4 rounded-xl font-semibold text-lg hover:bg-green-700 transition">
+  🏪 Soy Tienda
+      </button>
+           <button
+  onClick={() => window.open('https://lab-3-eco-vvsl.vercel.app/', '_blank')}
+  className="w-full bg-blue-600 text-white py-4 rounded-xl font-semibold text-lg hover:bg-blue-700 transition">
+  🚴 Soy Repartidor
+</button>
           </div>
         </div>
       </div>
