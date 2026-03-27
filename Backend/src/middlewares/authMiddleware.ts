@@ -15,7 +15,7 @@ export const getUserFromRequest = (req: AuthenticatedRequest): AuthUser => {
   throw Boom.unauthorized('User not authenticated');
 };
 
-// 1. MIDDLEWARE DE AUTENTICACIÓN (El que ya tenías)
+// 1. MIDDLEWARE DE AUTENTICACIÓN 
 export const authMiddleware = async (
   req: AuthenticatedRequest,
   res: Response,
@@ -41,13 +41,12 @@ export const authMiddleware = async (
   next();
 };
 
-// 2. MIDDLEWARE DE AUTORIZACIÓN (El que necesitas para los roles)
 // Este revisa el rol que está guardado en los 'user_metadata' de Supabase
 export const checkRole = (allowedRoles: string[]) => {
   return (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     const user = getUserFromRequest(req);
     
-    // Supabase guarda el rol en user_metadata si lo configuraste al registrar
+    // Supabase guarda el rol en user_metadata 
     const userRole = user.user_metadata?.role; 
 
     if (!allowedRoles.includes(userRole)) {
