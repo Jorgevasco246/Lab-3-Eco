@@ -1,8 +1,7 @@
 export enum OrderStatus {
-  PENDING = 'PENDING',
-  ACCEPTED = 'ACCEPTED',
-  DECLINED = 'DECLINED',
-  DELIVERED = 'DELIVERED',
+  CREATED = 'Creado',
+  IN_DELIVERY = 'En entrega',
+  DELIVERED = 'Entregado',
 }
 
 export interface OrderItem {
@@ -18,6 +17,8 @@ export interface Order {
   storeId: string;
   deliveryId: string | null;
   status: OrderStatus;
+  delivery_position: unknown;
+  destination: unknown;
   createdAt: string;
 }
 
@@ -29,10 +30,16 @@ export interface CreateOrderItemDTO {
 export interface CreateOrderDTO {
   consumerId: string;
   storeId: string;
+  destination: { lat: number; lng: number };
   items: CreateOrderItemDTO[];
 }
 
 export interface UpdateOrderStatusDTO {
   status: OrderStatus;
   deliveryId?: string;
+}
+
+export interface UpdatePositionDTO {
+  lat: number;
+  lng: number;
 }
