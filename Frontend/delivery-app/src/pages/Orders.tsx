@@ -58,80 +58,121 @@ const loadMyOrders = async () => {
   };
 
   return (
-    <div>
-      <nav className="bg-blue-600 text-white p-4 flex justify-between items-center">
-        <h1 className="font-bold text-xl">🚴 Rappi Delivery</h1>
-        <div className="flex gap-4 items-center">
-          <span className="text-sm">Hola, {user.name}</span>
-          <button onClick={onLogout} className="hover:underline text-sm">Salir</button>
+    <div className="min-h-screen bg-gray-50">
+      {/* Navbar */}
+      <nav className="bg-amber-800 text-white px-6 py-4 flex justify-between items-center shadow-md">
+        <div className="flex flex-col gap-1">
+          <h1 className="font-black text-xl tracking-tight">RAPPI DELIVERY</h1>
+          <span className="text-orange-200 text-sm">Hola, {user.name}</span>
         </div>
+        <button
+          onClick={onLogout}
+          className="px-5 py-2.5 rounded-xl font-black text-sm bg-white/20 hover:bg-white/30 transition">
+          SALIR
+        </button>
       </nav>
 
-      <div className="max-w-3xl mx-auto p-6">
-        <div className="flex gap-4 mb-6">
-          <button onClick={() => setTab('available')}
-            className={`px-4 py-2 rounded-xl font-medium ${tab === 'available' ? 'bg-blue-600 text-white' : 'bg-gray-100'}`}>
-            Disponibles ({available.length})
+      <div className="justify-center px-6 py-8 md:px-16 mx-auto grid grid-cols-1  gap-8 mb-8">
+        {/* Tabs */}
+        <div className="grid grid-cols-2 gap-3 mb-8">
+          <button
+            onClick={() => setTab('available')}
+            className={`px-6 py-4 rounded-2xl font-black text-sm transition
+              ${tab === 'available'
+                ? 'bg-amber-600 text-white shadow-lg shadow-amber-200'
+                : 'bg-white text-gray-500 hover:bg-gray-100 border-2 border-gray-100'}`}>
+            DISPONIBLES ({available.length})
           </button>
-          <button onClick={() => setTab('mine')}
-            className={`px-4 py-2 rounded-xl font-medium ${tab === 'mine' ? 'bg-blue-600 text-white' : 'bg-gray-100'}`}>
-            Mis Entregas ({myOrders.length})
+          <button
+            onClick={() => setTab('mine')}
+            className={`px-6 py-4 rounded-2xl font-black text-sm transition
+              ${tab === 'mine'
+                ? 'bg-amber-600 text-white shadow-lg shadow-amber-200'
+                : 'bg-white text-gray-500 hover:bg-gray-100 border-2 border-gray-100'}`}>
+            MIS ENTREGAS ({myOrders.length})
           </button>
         </div>
 
+        {/* Pedidos disponibles */}
         {tab === 'available' && (
           available.length === 0 ? (
-            <p className="text-gray-400">No hay pedidos disponibles</p>
+            <div className="text-center py-20 text-gray-300">
+              <div className="text-5xl mb-4">📦</div>
+              <p className="font-medium">No hay pedidos disponibles</p>
+            </div>
           ) : (
-            available.map(order => (
-              <div key={order.id} className="bg-white border rounded-2xl p-5 mb-4 shadow-sm">
-                <p className="font-semibold mb-1">Tienda: {order.stores?.name}</p>
-                <div className="text-sm text-gray-600 mb-3">
-                  {order.order_items?.map((item: any) => (
-                    <p key={item.id}>{item.products?.name} x{item.quantity}</p>
-                  ))}
+            <div className="flex flex-col gap-4">
+              {available.map(order => (
+                <div key={order.id} className="bg-white border-2 border-gray-100 rounded-3xl p-6 shadow-sm">
+                  <div className="mb-4">
+                    <p className="font-black text-gray-900 text-lg">{order.stores?.name}</p>
+                    <p className="text-gray-400 text-sm font-medium">Pedido #{order.id.slice(0, 8)}</p>
+                  </div>
+                  <div className="flex flex-col gap-1 mb-5 bg-gray-50 rounded-2xl p-4">
+                    {order.order_items?.map((item: any) => (
+                      <p key={item.id} className="text-sm text-gray-600 font-medium">
+                        • {item.products?.name} x{item.quantity}
+                      </p>
+                    ))}
+                  </div>
+                  <div className="flex gap-3">
+                    <button
+                      onClick={() => handleOrder(order.id, 'ACCEPTED')}
+                      className="flex-1 bg-amber-600 text-white py-3.5 rounded-2xl font-black hover:bg-amber-700 active:scale-95 transition">
+                      ACEPTAR
+                    </button>
+                    <button
+                      onClick={() => handleOrder(order.id, 'DECLINED')}
+                      className="flex-1 bg-gray-100 text-gray-500 py-3.5 rounded-2xl font-black hover:bg-red-50 hover:text-red-500 active:scale-95 transition">
+                      RECHAZAR
+                    </button>
+                  </div>
                 </div>
-                <div className="flex gap-3">
-                  <button onClick={() => handleOrder(order.id, 'ACCEPTED')}
-                    className="flex-1 bg-green-500 text-white py-2 rounded-xl hover:bg-green-600 font-medium">
-                    ✓ Aceptar
-                  </button>
-                  <button onClick={() => handleOrder(order.id, 'DECLINED')}
-                    className="flex-1 bg-red-100 text-red-600 py-2 rounded-xl hover:bg-red-200 font-medium">
-                    ✗ Rechazar
-                  </button>
-                </div>
-              </div>
-            ))
+              ))}
+            </div>
           )
         )}
 
+        {/* Mis entregas */}
         {tab === 'mine' && (
           myOrders.length === 0 ? (
-            <p className="text-gray-400">No tienes entregas asignadas</p>
+            <div className="text-center py-20 text-gray-300">
+              <div className="text-5xl mb-4"></div>
+              <p className="font-medium">No tienes entregas asignadas</p>
+            </div>
           ) : (
-            myOrders.map(order => (
-              <div key={order.id} className="bg-white border rounded-2xl p-5 mb-4 shadow-sm">
-                <div className="flex justify-between mb-2">
-                  <p className="font-semibold">Tienda: {order.stores?.name}</p>
-                  <span className={`px-3 py-1 rounded-full text-sm
-                    ${order.status === 'ACCEPTED' ? 'bg-blue-100 text-blue-700' : 'bg-green-100 text-green-700'}`}>
-                    {order.status}
-                  </span>
+            <div className="flex flex-col gap-4">
+              {myOrders.map(order => (
+                <div key={order.id} className="bg-white border-2 border-gray-100 rounded-3xl p-6 shadow-sm">
+                  <div className="flex justify-between items-start mb-4">
+                    <div>
+                      <p className="font-black text-gray-900 text-lg">{order.stores?.name}</p>
+                      <p className="text-gray-400 text-sm font-medium">Pedido #{order.id.slice(0, 8)}</p>
+                    </div>
+                    <span className={`px-3 py-1.5 rounded-full text-xs font-black
+                      ${order.status === 'ACCEPTED' || order.status === 'En entrega'
+                        ? 'bg-orange-100 text-orange-600'
+                        : 'bg-green-100 text-green-600'}`}>
+                      {order.status}
+                    </span>
+                  </div>
+                  <div className="flex flex-col gap-1 mb-5 bg-gray-50 rounded-2xl p-4">
+                    {order.order_items?.map((item: any) => (
+                      <p key={item.id} className="text-sm text-gray-600 font-medium">
+                        • {item.products?.name} x{item.quantity}
+                      </p>
+                    ))}
+                  </div>
+                  {(order.status === 'ACCEPTED' || order.status === 'En entrega') && (
+                    <button
+                      onClick={() => markDelivered(order.id)}
+                      className="w-full bg-amber-600 text-white py-4 rounded-2xl font-black hover:bg-orange-600 active:scale-95 transition shadow-lg shadow-orange-200">
+                      MARCAR COMO ENTREGADO
+                    </button>
+                  )}
                 </div>
-                {order.order_items?.map((item: any) => (
-                  <p key={item.id} className="text-sm text-gray-600">
-                    {item.products?.name} x{item.quantity}
-                  </p>
-                ))}
-                {order.status === 'ACCEPTED' && (
-                  <button onClick={() => markDelivered(order.id)}
-                    className="w-full mt-3 bg-green-500 text-white py-2 rounded-xl hover:bg-green-600 font-medium">
-                    Marcar como Entregado
-                  </button>
-                )}
-              </div>
-            ))
+              ))}
+            </div>
           )
         )}
       </div>

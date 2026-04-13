@@ -61,16 +61,16 @@ export default function Dashboard({ user, onLogout }: { user: User; onLogout: ()
   );
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="mx-auto min-h-screen bg-gray-50 ">
       {/* Navbar */}
       <nav className="bg-green-600 text-white px-6 py-4 flex justify-between items-center shadow-md">
         <div className="flex flex-col gap-1">
-          <h1 className="font-bold text-xl">🏪 {store.name}</h1>
+          <h1 className="font-bold text-xl">Bienvenido, {store.name}</h1>
           <span className={`text-sm ${store.isOpen ? 'text-green-200' : 'text-red-200'}`}>
             {store.isOpen ? '🟢 Abierta' : '🔴 Cerrada'}
           </span>
         </div>
-        <div className="flex gap-4 items-center">
+        <div className="flex gap-4 justify-center items-center">
           <button
             onClick={toggleStore}
             className={`px-5 py-2.5 rounded-xl font-semibold text-sm transition active:scale-95
@@ -87,10 +87,10 @@ export default function Dashboard({ user, onLogout }: { user: User; onLogout: ()
         </div>
       </nav>
 
-      <div className="max-w-4xl mx-auto p-8">
+      <div className="justify-center mx-8 px-6 py-8 md:px-16 mx-auto grid grid-cols-1 gap-8 mb-8 px-6 py-8 md:px-16  gap-8 mb-8">
 
         {/* Tabs */}
-        <div className="flex gap-3 mb-8">
+        <div className="justify-center px-6 py-8 md:px-16 mx-auto grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
           <button
             onClick={() => setTab('products')}
             className={`px-6 py-3 rounded-xl font-semibold transition
@@ -111,18 +111,18 @@ export default function Dashboard({ user, onLogout }: { user: User; onLogout: ()
 
         {/* Productos */}
         {tab === 'products' && (
-          <div className="flex flex-col gap-6">
+          <div className="justify-center px-6 py-8 md:px-16 mx-auto grid grid-cols-1 gap-8 mb-8 px-6 py-8 md:px-16  gap-8 mb-8">
             <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm">
               <h3 className="font-bold text-gray-700 mb-4 text-lg">Agregar Producto</h3>
               <div className="flex flex-col sm:flex-row gap-3">
                 <input
                   className="flex-1 border border-gray-200 bg-gray-50 p-3.5 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-400 transition"
-                  placeholder="Nombre del producto"
+                  placeholder="  Nombre del producto"
                   value={newProduct.name}
                   onChange={e => setNewProduct({...newProduct, name: e.target.value})} />
                 <input
                   className="w-full sm:w-36 border border-gray-200 bg-gray-50 p-3.5 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-400 transition"
-                  placeholder="Precio"
+                  placeholder="  Precio"
                   type="number"
                   value={newProduct.price}
                   onChange={e => setNewProduct({...newProduct, price: e.target.value})} />

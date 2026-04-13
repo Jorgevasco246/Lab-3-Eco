@@ -19,7 +19,7 @@ export default function MyOrders({ user }: { user: User }) {
   };
 
   return (
-    <div className="p-6 max-w-3xl mx-auto">
+    <div className="justify-center px-6 py-8 md:px-16 mx-auto grid grid-cols-1 gap-8 mb-8 px-6 py-8 md:px-16  gap-8 mb-8">
       <h2 className="text-2xl font-bold mb-6">Mis Pedidos</h2>
       {orders.length === 0 ? (
         <p className="text-gray-400">No tienes pedidos aún</p>

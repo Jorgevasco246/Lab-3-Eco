@@ -28,69 +28,91 @@ export default function Login({ onSuccess, onRegister, onBack }: Props) {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center p-4">
-      <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md p-10">
+    <div className="min-h-screen bg-white flex">
+      {/* Left panel */}
+      <div className="hidden md:flex w-1/2 bg-orange-500 flex-col justify-between px-16 py-12">
+        <div>
+          <h1 className="text-white font-black text-3xl tracking-tight">RAPPI</h1>
+        </div>
+        <div className="max-w-md">
+          <h2 className="text-white font-black text-5xl leading-tight mb-4">
+            TU COMIDA,<br />DONDE<br />QUIERAS.
+          </h2>
+          <br />
+          <p className="text-orange-200 text-lg">
+          </p>
+        </div>
+      </div>
 
+      {/* Right panel */}
+      <div className="flex-1 flex flex-col justify-center items-center px-6 md:px-12">
         {onBack && (
           <button
             onClick={onBack}
-            className="flex items-center gap-2 text-gray-400 hover:text-orange-500 transition mb-6 text-sm font-medium">
-            ← Volver al inicio
+            className="flex items-center gap-2 text-gray-400 hover:text-gray-600 transition mb-12 text-sm font-bold tracking-wide w-fit">
+            ← VOLVER
           </button>
         )}
+        <br />
 
-        <div className="text-center mb-8">
-          <div className="text-5xl mb-3">🛒</div>
-          <h2 className="text-3xl font-bold text-gray-800">Bienvenido</h2>
-          <p className="text-gray-400 mt-2 text-sm">Portal exclusivo para consumidores</p>
-        </div>
-
-        {error && (
-          <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-xl mb-5 text-sm text-center">
-            {error}
-          </div>
-        )}
-
-        <div className="flex flex-col gap-8">
-          <div>
-            <label className="block text-sm font-medium text-gray-600 mb-1.5">Email</label>
-            <input
-              className="w-full border border-gray-200 bg-gray-50 p-3.5 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-transparent transition"
-              placeholder="correo@email.com"
-              value={email}
-              onChange={e => setEmail(e.target.value)}
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-600 mb-1.5">Contraseña</label>
-            <input
-              className="w-full border border-gray-200 bg-gray-50 p-3.5 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-transparent transition"
-              placeholder="••••••••"
-              type="password"
-              value={password}
-              onChange={e => setPassword(e.target.value)}
-            />
-          </div>
-
-          <button
-            onClick={handleLogin}
-            className="w-full bg-orange-500 text-white py-4 rounded-xl font-semibold text-lg hover:bg-orange-600 active:scale-95 transition mt-2 shadow-lg shadow-orange-200">
-            Iniciar sesión
-          </button>
-        </div>
-
-        <div className="text-center mt-6 pt-6 border-t border-gray-100">
-          <p className="text-gray-500 text-sm">
-            ¿No tienes cuenta?{' '}
-            <button
-              onClick={onRegister}
-              className="text-orange-500 font-semibold hover:text-orange-600 hover:underline transition">
-              Regístrate aquí
-            </button>
+        <div className="max-w-sm w-full mx-auto">
+          <p className="text-orange-500 font-bold text-xs tracking-widest uppercase mb-2">
+            Portal Consumidor
           </p>
-        </div>
+          <h2 className="text-4xl font-black text-gray-900 mb-10">
+            Inicia sesión
+          </h2>
 
+          {error && (
+            <div className="bg-red-50 border-l-4 border-red-500 text-red-700 px-4 py-3 rounded-xl mb-6 text-sm font-medium">
+              {error}
+            </div>
+          )}
+
+          <div className="flex flex-col gap-5 ">
+            <div>
+              <label className="block text-xs font-black text-gray-500 uppercase tracking-wider mb-2">
+                Email
+              </label>
+              <input
+                className="w-full border-2 border-gray-200 bg-gray-50 p-4 pl-8 rounded-2xl focus:outline-none focus:border-orange-500 transition text-gray-800 font-medium"
+                placeholder="  correo@email.com"
+                value={email}
+                onChange={e => setEmail(e.target.value)}
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-black text-gray-500 uppercase tracking-wider mb-2">
+                Contraseña
+              </label>
+              <input
+                className="w-full border-2 border-gray-200 bg-gray-50 p-4 rounded-2xl focus:outline-none focus:border-orange-500 transition text-gray-800 font-medium"
+                placeholder="  ••••••••"
+                type="password"
+                value={password}
+                onChange={e => setPassword(e.target.value)}
+              />
+            </div>
+
+            <button
+              onClick={handleLogin}
+              className="w-full bg-orange-500 text-white py-4 rounded-2xl font-black text-lg hover:bg-orange-600 active:scale-95 transition mt-2 shadow-xl shadow-orange-200">
+              INICIAR SESIÓN
+            </button>
+          </div>
+
+          <div className="mt-8 pt-8 border-t-2 border-gray-100">
+            <p className="text-gray-400 text-sm">
+              ¿No tienes cuenta?{' '}
+              <button
+                onClick={onRegister}
+                className="text-orange-500 font-black hover:text-orange-600 transition">
+                Regístrate aquí
+              </button>
+            </p>
+          </div>
+        </div>
       </div>
     </div>
   );
