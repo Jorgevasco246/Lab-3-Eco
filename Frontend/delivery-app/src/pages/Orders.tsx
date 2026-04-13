@@ -35,28 +35,27 @@ const loadMyOrders = async () => {
 
   init();
     }, [user.id]);
-  const handleOrder = async (orderId: string, status: 'ACCEPTED' | 'DECLINED') => {
-    await fetch(`${API_URL}/orders/${orderId}/status`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        status,
-        deliveryId: status === 'ACCEPTED' ? user.id : undefined,
-      }),
-    });
-    loadAvailable();
-    loadMyOrders();
-  };
+  const handleOrder = async (orderId: string, action: 'accept' | 'decline') => {
+  await fetch(`${API_URL}/orders/${orderId}/status`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      status: action === 'accept' ? 'En entrega' : 'Rechazado',
+      deliveryId: action === 'accept' ? user.id : undefined,
+    }),
+  });
+  loadAvailable();
+  loadMyOrders();
+};
 
-  const markDelivered = async (orderId: string) => {
-    await fetch(`${API_URL}/orders/${orderId}/status`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ status: 'DELIVERED' }),
-    });
-    loadMyOrders();
-  };
-
+ const markDelivered = async (orderId: string) => {
+  await fetch(`${API_URL}/orders/${orderId}/status`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ status: 'Entregado' }),
+  });
+  loadMyOrders();
+};
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Navbar */}
@@ -117,12 +116,12 @@ const loadMyOrders = async () => {
                   </div>
                   <div className="flex gap-3">
                     <button
-                      onClick={() => handleOrder(order.id, 'ACCEPTED')}
+                      onClick={() => handleOrder(order.id, 'accept')}
                       className="flex-1 bg-amber-600 text-white py-3.5 rounded-2xl font-black hover:bg-amber-700 active:scale-95 transition">
                       ACEPTAR
                     </button>
                     <button
-                      onClick={() => handleOrder(order.id, 'DECLINED')}
+                      onClick={() => handleOrder(order.id, 'decline')}
                       className="flex-1 bg-gray-100 text-gray-500 py-3.5 rounded-2xl font-black hover:bg-red-50 hover:text-red-500 active:scale-95 transition">
                       RECHAZAR
                     </button>
