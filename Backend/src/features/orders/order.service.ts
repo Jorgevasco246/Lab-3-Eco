@@ -8,7 +8,7 @@ export const createOrderService = async (data: {
   // 1. Crear la orden
   const { data: order, error: orderError } = await supabase
     .from('orders')
-    .insert([{ consumerId: data.consumerId, storeId: data.storeId, status: 'PENDING' }])
+    .insert([{ consumerId: data.consumerId, storeId: data.storeId, status: 'Creado' }])
     .select()
     .single();
   if (orderError) throw new Error(orderError.message);

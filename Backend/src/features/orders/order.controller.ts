@@ -47,7 +47,7 @@ export const updateOrderStatusController = async (req: Request, res: Response) =
   const id = getParam(req.params.id);
   const { status, deliveryId }: UpdateOrderStatusDTO = req.body;
   if (!status) throw Boom.badRequest('status is required');
-  if (!Object.values(OrderStatus).includes(status))
+  if (!Object.values(OrderStatus).includes(status as OrderStatus))
     throw Boom.badRequest(`status must be: ${Object.values(OrderStatus).join(', ')}`);
   const order = await updateOrderStatusService(id, status, deliveryId);
   return res.json(order);
