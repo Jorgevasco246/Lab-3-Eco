@@ -47,13 +47,12 @@ export const getOrdersByStoreService = async (storeId: string) => {
 export const getAvailableOrdersService = async () => {
   const { data, error } = await supabase
     .from('orders')
-    .select('*, stores(name), users!orders_consumerId_fkey(name), order_items(quantity, products(name, price))')
-    .eq('status', 'PENDING')
+    .select('*, stores(name), order_items(quantity, products(name, price))')
+    .eq('status', 'Creado')
     .is('deliveryId', null);
   if (error) throw new Error(error.message);
   return data;
 };
-
 export const getAcceptedOrdersByDeliveryService = async (deliveryId: string) => {
   const { data, error } = await supabase
     .from('orders')
