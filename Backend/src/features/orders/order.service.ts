@@ -79,3 +79,39 @@ export const updateOrderStatusService = async (
   if (error) throw new Error(error.message);
   return data;
 };
+export const acceptOrderService = async (orderId: string, deliveryId: string) => {
+  const { data, error } = await supabase
+    .from('orders')
+    .update({ 
+      status: 'En entrega',
+      deliveryId: deliveryId
+    })
+    .eq('id', orderId)
+    .select()
+    .single();
+  if (error) throw new Error(error.message);
+  return data;
+};
+
+export const updatePositionService = async (orderId: string, lat: number, lng: number) => {
+  const { data, error } = await supabase
+    .from('orders')
+    .update({ 
+      delivery_position: `POINT(${lng} ${lat})`
+    })
+    .eq('id', orderId)
+    .select()
+    .single();
+  if (error) throw new Error(error.message);
+  return data;
+};
+
+export const getOrderByIdService = async (orderId: string) => {
+  const { data, error } = await supabase
+    .from('orders')
+    .select('*, stores(name), order_items(quantity, products(name, price))')
+    .eq('id', orderId)
+    .single();
+  if (error) throw new Error(error.message);
+  return data;
+};

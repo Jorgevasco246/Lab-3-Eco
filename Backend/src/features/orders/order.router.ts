@@ -6,6 +6,9 @@ import {
   getAvailableOrdersController,
   getAcceptedOrdersByDeliveryController,
   updateOrderStatusController,
+  acceptOrderController,
+  updatePositionController,
+  getOrderByIdController,
 } from './order.controller';
 
 export const router = Router();
@@ -15,4 +18,7 @@ router.get('/available', getAvailableOrdersController);
 router.get('/consumer/:consumerId', getOrdersByConsumerController);
 router.get('/store/:storeId', getOrdersByStoreController);
 router.get('/delivery/:deliveryId', getAcceptedOrdersByDeliveryController);
+router.get('/:id', getOrderByIdController);
 router.patch('/:id/status', updateOrderStatusController);
+router.patch('/:id/accept', acceptOrderController);
+router.patch('/:id/position', updatePositionController);
