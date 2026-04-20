@@ -1,26 +1,26 @@
 import { supabase } from '../../config/supabase';
+import { CreateOrderDTO, CreateOrderItemDTO } from './order.types'
 
-export const createOrderService = async (data: {
-  consumerId: string;
-  storeId: string;
-  items: { productId: string; quantity: number }[];
-}) => {
-  // 1. Crear la orden
+export const createOrderService = async (data: CreateOrderDTO) => {
   const { data: order, error: orderError } = await supabase
     .from('orders')
-    .insert([{ consumerId: data.consumerId, storeId: data.storeId, status: 'Creado' }])
-    .select()
-    .single();
+    .insert([{ 
+      consumerId: data.consumerId, 
+      storeId: data.storeId, 
+      status: 'Creado',
+      destination: data.destination 
+        ? `POINT(${data.destination.lng} ${data.destination.lat})`
+        : null
+    }])
+    .select().single();
   if (orderError) throw new Error(orderError.message);
 
-  // 2. Crear los items
-  const itemsToInsert = data.items.map(item => ({
-    orderId: order.id,
-    productId: item.productId,
-    quantity: item.quantity,
+  const items = data.items.map((i: CreateOrderItemDTO) => ({ 
+    orderId: order.id, 
+    productId: i.productId, 
+    quantity: i.quantity 
   }));
-
-  const { error: itemsError } = await supabase.from('order_items').insert(itemsToInsert);
+  const { error: itemsError } = await supabase.from('order_items').insert(items);
   if (itemsError) throw new Error(itemsError.message);
 
   return order;
@@ -112,6 +112,16 @@ export const getOrderByIdService = async (orderId: string) => {
     .select('*, stores(name), order_items(quantity, products(name, price))')
     .eq('id', orderId)
     .single();
+  if (error) throw new Error(error.message);
+  return data;
+};
+export const checkArrivalService = async (orderId: string, lat: number, lng: number) => {
+  const { data, error } = await supabase
+    .rpc('check_arrival', {
+      order_id: orderId,
+      delivery_lat: lat,
+      delivery_lng: lng,
+    });
   if (error) throw new Error(error.message);
   return data;
 };

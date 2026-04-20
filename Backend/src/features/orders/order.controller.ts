@@ -10,16 +10,17 @@ import {
   acceptOrderService,
   updatePositionService,
   getOrderByIdService,
+  checkArrivalService,
 } from './order.service';
 import { CreateOrderDTO, UpdateOrderStatusDTO, OrderStatus, UpdatePositionDTO } from './order.types';
 import { getParam } from '../../utils/params';
 
 export const createOrderController = async (req: Request, res: Response) => {
-  const { consumerId, storeId, items }: CreateOrderDTO = req.body;
+  const { consumerId, storeId, items, destination }: CreateOrderDTO = req.body;
   if (!consumerId) throw Boom.badRequest('consumerId is required');
   if (!storeId) throw Boom.badRequest('storeId is required');
   if (!items || items.length === 0) throw Boom.badRequest('items are required');
-  const order = await createOrderService({ consumerId, storeId, items });
+  const order = await createOrderService({ consumerId, storeId, items, destination });
   return res.status(201).json(order);
 };
 
@@ -75,4 +76,11 @@ export const getOrderByIdController = async (req: Request, res: Response) => {
   const id = getParam(req.params.id);
   const order = await getOrderByIdService(id);
   return res.json(order);
+};
+export const checkArrivalController = async (req: Request, res: Response) => {
+  const id = getParam(req.params.id);
+  const { lat, lng } = req.body;
+  if (lat === undefined || lng === undefined) throw Boom.badRequest('lat and lng are required');
+  const arrived = await checkArrivalService(id, lat, lng);
+  return res.json({ arrived });
 };

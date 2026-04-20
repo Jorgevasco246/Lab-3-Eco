@@ -22,3 +22,5 @@ router.get('/:id', getOrderByIdController);
 router.patch('/:id/status', updateOrderStatusController);
 router.patch('/:id/accept', acceptOrderController);
 router.patch('/:id/position', updatePositionController);
+router.post('/:id/check-arrival', checkArrivalController);
+

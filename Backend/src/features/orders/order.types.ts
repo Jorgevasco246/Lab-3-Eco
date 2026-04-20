@@ -30,7 +30,7 @@ export interface CreateOrderItemDTO {
 export interface CreateOrderDTO {
   consumerId: string;
   storeId: string;
-  destination: { lat: number; lng: number };
+  destination?: { lat: number; lng: number };
   items: CreateOrderItemDTO[];
 }
 
