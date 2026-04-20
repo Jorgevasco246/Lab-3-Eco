@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { API_URL } from '../api/config';
 import type { User } from '../App';
+import MapPicker from '../components/MapPicker';
 
 interface Store { id: string; name: string; isOpen: boolean; }
 interface Product { id: string; name: string; price: number; }
@@ -11,6 +12,8 @@ export default function Stores({ user }: { user: User }) {
   const [products, setProducts] = useState<Product[]>([]);
   const [cart, setCart] = useState<{ product: Product; qty: number }[]>([]);
   const [msg, setMsg] = useState('');
+  const [destination, setDestination] = useState<{ lat: number; lng: number } | null>(null);
+  const [showMap, setShowMap] = useState(false);
 
   useEffect(() => {
     fetch(`${API_URL}/stores`)
@@ -44,27 +47,36 @@ export default function Stores({ user }: { user: User }) {
   };
 
   const placeOrder = async () => {
-    if (!selectedStore || cart.length === 0) return;
-    if (!selectedStore.isOpen) {
-      setMsg('❌ La tienda está cerrada, no puedes hacer pedidos');
-      setTimeout(() => setMsg(''), 3000);
-      return;
-    }
-    const res = await fetch(`${API_URL}/orders`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        consumerId: user.id,
-        storeId: selectedStore.id,
-        items: cart.map(i => ({ productId: i.product.id, quantity: i.qty })),
-      }),
-    });
-    if (res.ok) {
-      setMsg('✅ ¡Pedido creado exitosamente!');
-      setCart([]);
-      setTimeout(() => setMsg(''), 3000);
-    }
-  };
+  if (!selectedStore || cart.length === 0) return;
+  if (!selectedStore.isOpen) {
+    setMsg('❌ La tienda está cerrada, no puedes hacer pedidos');
+    setTimeout(() => setMsg(''), 3000);
+    return;
+  }
+  if (!destination) {
+    setMsg('❌ Debes seleccionar un punto de entrega en el mapa');
+    setTimeout(() => setMsg(''), 3000);
+    return;
+  }
+
+  const res = await fetch(`${API_URL}/orders`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      consumerId: user.id,
+      storeId: selectedStore.id,
+      destination,
+      items: cart.map(i => ({ productId: i.product.id, quantity: i.qty })),
+    }),
+  });
+  if (res.ok) {
+    setMsg('✅ ¡Pedido creado exitosamente!');
+    setCart([]);
+    setDestination(null);
+    setShowMap(false);
+    setTimeout(() => setMsg(''), 3000);
+  }
+};
 
   return (
     <div className="min-h-screen bg-gray-50 py-10 px-6 md:px-16">
@@ -108,6 +120,26 @@ export default function Stores({ user }: { user: User }) {
             ))}
           </div>
         </div>
+
+        {/* Mapa de entrega */}
+<div className="mb-4">
+  <button
+    onClick={() => setShowMap(!showMap)}
+    className="w-full border-2 border-dashed border-gray-200 text-gray-400 py-3 rounded-2xl font-bold text-sm hover:border-orange-300 hover:text-orange-400 transition mb-3">
+    {destination ? '📍 Ubicación seleccionada' : '+ Seleccionar punto de entrega'}
+  </button>
+  {showMap && (
+    <MapPicker position={destination} onSelect={(pos) => {
+      setDestination(pos);
+      setShowMap(false);
+    }} />
+  )}
+  {destination && (
+    <p className="text-xs text-gray-400 mt-2 text-center font-medium">
+      Lat: {destination.lat.toFixed(4)}, Lng: {destination.lng.toFixed(4)}
+    </p>
+  )}
+</div>
 
         {/* PRODUCTOS */}
         <div className=" bg-white rounded-3xl shadow-sm border border-gray-100 p-8 max-w-4xl mx-auto">
