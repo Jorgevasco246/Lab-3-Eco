@@ -9,6 +9,7 @@ import {
   acceptOrderController,
   updatePositionController,
   getOrderByIdController,
+  checkArrivalController,
 } from './order.controller';
 
 export const router = Router();
