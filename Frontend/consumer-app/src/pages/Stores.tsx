@@ -73,7 +73,6 @@ export default function Stores({ user }: { user: User }) {
     setMsg('✅ ¡Pedido creado exitosamente!');
     setCart([]);
     setDestination(null);
-    setShowMap(false);
     setTimeout(() => setMsg(''), 3000);
   }
 };
@@ -126,12 +125,11 @@ export default function Stores({ user }: { user: User }) {
   <button
     onClick={() => setShowMap(!showMap)}
     className="w-full border-2 border-dashed border-gray-200 text-gray-400 py-3 rounded-2xl font-bold text-sm hover:border-orange-300 hover:text-orange-400 transition mb-3">
-    {destination ? '📍 Ubicación seleccionada' : '+ Seleccionar punto de entrega'}
+    {destination ? '📍 Cambiar ubicación de entrega' : '+ Seleccionar punto de entrega'}
   </button>
   {showMap && (
     <MapPicker position={destination} onSelect={(pos) => {
       setDestination(pos);
-      setShowMap(false);
     }} />
   )}
   {destination && (

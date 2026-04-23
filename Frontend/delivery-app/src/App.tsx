@@ -2,6 +2,7 @@ import { useState } from 'react';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Orders from './pages/Orders';
+import 'leaflet/dist/leaflet.css';
 
 export type User = { id: string; name: string; email: string; role: string };
 

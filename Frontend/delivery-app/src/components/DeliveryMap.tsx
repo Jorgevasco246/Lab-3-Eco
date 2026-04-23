@@ -1,125 +1,182 @@
-import { useEffect, useRef, useState } from 'react';
-import { MapContainer, TileLayer, Marker, useMap } from 'react-leaflet';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { MapContainer, Marker, TileLayer, useMap } from 'react-leaflet';
 import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
 import { API_URL, supabase } from '../api/config';
 
-const deliveryIcon = L.icon({
+delete (L.Icon.Default.prototype as { _getIconUrl?: unknown })._getIconUrl;
+
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
   iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
   shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
-  iconSize: [25, 41],
-  iconAnchor: [12, 41],
-});
-
-const destinationIcon = L.divIcon({
-  html: '📍',
-  iconSize: [30, 30],
-  className: 'destination-icon',
 });
 
 const STEP = 0.00005;
 
 function MapUpdater({ position }: { position: { lat: number; lng: number } }) {
   const map = useMap();
+
   useEffect(() => {
     map.setView([position.lat, position.lng]);
   }, [position, map]);
+
   return null;
 }
 
 interface Props {
   orderId: string;
-  userId: string;
   destination: { lat: number; lng: number } | null;
-  onDelivered: () => void;
+  onDelivered: () => void | Promise<void>;
 }
 
-export default function DeliveryMap({ orderId, userId, destination, onDelivered }: Props) {
-  const [position, setPosition] = useState({ lat: 3.4516, lng: -76.5320 });
-  const [delivered, setDelivered] = useState(false);
-  const throttleRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const pendingPosition = useRef(position);
+export default function DeliveryMap({ orderId, destination, onDelivered }: Props) {
+  const [position, setPosition] = useState({
+    lat: 3.4516,
+    lng: -76.532,
+  });
 
-  const updatePosition = async (pos: { lat: number; lng: number }) => {
-    // 1. Actualizar en la base de datos
+  const throttleRef = useRef<number | null>(null);
+  const pendingPosition = useRef(position);
+  const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
+
+  useEffect(() => {
+    const channel = supabase.channel(`order:${orderId}`);
+    channel.subscribe();
+    channelRef.current = channel;
+
+    return () => {
+      if (channelRef.current) {
+        void supabase.removeChannel(channelRef.current);
+        channelRef.current = null;
+      }
+    };
+  }, [orderId]);
+
+  const updatePosition = useCallback(async (pos: { lat: number; lng: number }) => {
     await fetch(`${API_URL}/orders/${orderId}/position`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ lat: pos.lat, lng: pos.lng }),
+      body: JSON.stringify(pos),
     });
 
-    // 2. Emitir via Supabase Broadcast
-    const channel = supabase.channel(`order:${orderId}`);
-    await channel.send({
-      type: 'broadcast',
-      event: 'position-update',
-      payload: { lat: pos.lat, lng: pos.lng },
-    });
-
-    // 3. Verificar si llegó al destino
-    if (destination) {
-      const res = await fetch(`${API_URL}/orders/${orderId}/check-arrival`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ lat: pos.lat, lng: pos.lng }),
+    if (channelRef.current) {
+      await channelRef.current.send({
+        type: 'broadcast',
+        event: 'position-update',
+        payload: pos,
       });
-      const data = await res.json();
-      if (data.arrived && !delivered) {
-        setDelivered(true);
-        onDelivered();
-      }
     }
-  };
+
+    if (!destination) {
+      return;
+    }
+
+    const res = await fetch(`${API_URL}/orders/${orderId}/check-arrival`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(pos),
+    });
+
+    if (!res.ok) {
+      return;
+    }
+
+    const { arrived } = await res.json();
+
+    if (arrived) {
+      await onDelivered();
+    }
+  }, [orderId, destination, onDelivered]);
+
+  useEffect(() => {
+    pendingPosition.current = position;
+  }, [position]);
+
+  useEffect(() => {
+    let ignore = false;
+
+    const loadOrder = async () => {
+      try {
+        const res = await fetch(`${API_URL}/orders/${orderId}`);
+        if (!res.ok) {
+          return;
+        }
+
+        const order = await res.json();
+        const point = order.delivery_position;
+
+        if (!ignore && typeof point?.lat === 'number' && typeof point?.lng === 'number') {
+          const nextPosition = { lat: point.lat, lng: point.lng };
+          setPosition(nextPosition);
+          pendingPosition.current = nextPosition;
+        }
+      } catch {
+        // Keep the default position if the order cannot be loaded yet.
+      }
+    };
+
+    void loadOrder();
+
+    return () => {
+      ignore = true;
+    };
+  }, [orderId]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      let { lat, lng } = position;
-
-      switch (e.key) {
-        case 'ArrowUp':    lat += STEP; break;
-        case 'ArrowDown':  lat -= STEP; break;
-        case 'ArrowLeft':  lng -= STEP; break;
-        case 'ArrowRight': lng += STEP; break;
-        default: return;
+      if (!['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
+        return;
       }
 
       e.preventDefault();
-      setPosition({ lat, lng });
-      pendingPosition.current = { lat, lng };
 
-      if (throttleRef.current) return;
+      setPosition((prev) => {
+        let { lat, lng } = prev;
 
-      throttleRef.current = setTimeout(() => {
-        updatePosition(pendingPosition.current);
-        throttleRef.current = null;
-      }, 1000);
+        if (e.key === 'ArrowUp') lat += STEP;
+        if (e.key === 'ArrowDown') lat -= STEP;
+        if (e.key === 'ArrowLeft') lng -= STEP;
+        if (e.key === 'ArrowRight') lng += STEP;
+
+        const newPos = { lat, lng };
+        pendingPosition.current = newPos;
+
+        if (!throttleRef.current) {
+          throttleRef.current = window.setTimeout(() => {
+            void updatePosition(pendingPosition.current);
+            throttleRef.current = null;
+          }, 1000);
+        }
+
+        return newPos;
+      });
     };
 
     window.addEventListener('keydown', handleKeyDown);
+
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
-      if (throttleRef.current) clearTimeout(throttleRef.current);
+      if (throttleRef.current) {
+        window.clearTimeout(throttleRef.current);
+      }
     };
-  }, [position]);
+  }, [updatePosition]);
 
   return (
-    <div className="flex flex-col gap-4">
-      <div className="bg-gray-50 rounded-2xl p-4 text-sm text-gray-500 font-medium text-center">
-        Usa las teclas ↑ ↓ ← → para moverte en el mapa
-      </div>
+    <div>
+      <p>Usa las flechas del teclado para mover al repartidor.</p>
       <MapContainer
+        key={orderId}
         center={[position.lat, position.lng]}
         zoom={15}
-        style={{ height: '400px', width: '100%', borderRadius: '16px' }}>
+        style={{ height: '400px', width: '100%', background: 'white' }}
+      >
         <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
         <MapUpdater position={position} />
-        <Marker position={[position.lat, position.lng]} icon={deliveryIcon} />
-        {destination && (
-          <Marker position={[destination.lat, destination.lng]} icon={destinationIcon} />
-        )}
+        <Marker position={[position.lat, position.lng]} />
+        {destination && <Marker position={[destination.lat, destination.lng]} />}
       </MapContainer>
-      <div className="text-xs text-gray-400 text-center font-medium">
-        Tu posición: {position.lat.toFixed(5)}, {position.lng.toFixed(5)}
-      </div>
     </div>
   );
 }
