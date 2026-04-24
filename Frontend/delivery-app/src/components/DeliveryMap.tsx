@@ -12,6 +12,15 @@ L.Icon.Default.mergeOptions({
   shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
 });
 
+const destinationIcon = L.divIcon({
+  html: `
+    <div style="display:flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:9999px;background:#ef4444;border:3px solid #ffffff;box-shadow:0 4px 12px rgba(239,68,68,0.35);"></div>
+  `,
+  iconSize: [20, 20],
+  iconAnchor: [10, 10],
+  className: 'destination-icon',
+});
+
 const STEP = 0.00005;
 
 function MapUpdater({ position }: { position: { lat: number; lng: number } }) {
@@ -35,17 +44,29 @@ export default function DeliveryMap({ orderId, destination, onDelivered }: Props
     lat: 3.4516,
     lng: -76.532,
   });
+  const [socketStatus, setSocketStatus] = useState<'connecting' | 'connected' | 'disconnected'>('connecting');
 
   const throttleRef = useRef<number | null>(null);
   const pendingPosition = useRef(position);
   const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
+  const socketReadyRef = useRef(false);
 
   useEffect(() => {
     const channel = supabase.channel(`order:${orderId}`);
-    channel.subscribe();
+    channel.subscribe((status) => {
+      if (status === 'SUBSCRIBED') {
+        socketReadyRef.current = true;
+        setSocketStatus('connected');
+      } else {
+        socketReadyRef.current = false;
+        setSocketStatus('disconnected');
+      }
+    });
     channelRef.current = channel;
 
     return () => {
+      socketReadyRef.current = false;
+      setSocketStatus('disconnected');
       if (channelRef.current) {
         void supabase.removeChannel(channelRef.current);
         channelRef.current = null;
@@ -60,7 +81,7 @@ export default function DeliveryMap({ orderId, destination, onDelivered }: Props
       body: JSON.stringify(pos),
     });
 
-    if (channelRef.current) {
+    if (channelRef.current && socketReadyRef.current) {
       await channelRef.current.send({
         type: 'broadcast',
         event: 'position-update',
@@ -165,7 +186,20 @@ export default function DeliveryMap({ orderId, destination, onDelivered }: Props
 
   return (
     <div>
-      <p>Usa las flechas del teclado para mover al repartidor.</p>
+      <div className="mb-3 flex items-center justify-between gap-3">
+        <p>Usa las flechas del teclado para mover al repartidor.</p>
+        <span
+          className={`rounded-full px-3 py-1 text-xs font-black ${
+            socketStatus === 'connected'
+              ? 'bg-green-100 text-green-700'
+              : socketStatus === 'connecting'
+                ? 'bg-yellow-100 text-yellow-700'
+                : 'bg-red-100 text-red-600'
+          }`}
+        >
+          {socketStatus === 'connected' ? 'Socket activo' : socketStatus === 'connecting' ? 'Conectando socket' : 'Socket desconectado'}
+        </span>
+      </div>
       <MapContainer
         key={orderId}
         center={[position.lat, position.lng]}
@@ -175,7 +209,7 @@ export default function DeliveryMap({ orderId, destination, onDelivered }: Props
         <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
         <MapUpdater position={position} />
         <Marker position={[position.lat, position.lng]} />
-        {destination && <Marker position={[destination.lat, destination.lng]} />}
+        {destination && <Marker position={[destination.lat, destination.lng]} icon={destinationIcon} />}
       </MapContainer>
     </div>
   );

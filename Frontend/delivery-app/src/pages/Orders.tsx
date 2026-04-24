@@ -139,7 +139,8 @@ export default function Orders({ user, onLogout }: { user: User; onLogout: () =>
         </button>
       </nav>
 
-      <div className="max-w-3xl mx-auto px-6 py-10">
+      <div className="w-full flex justify-center px-6 py-10">
+        <div className="w-full max-w-4xl">
         <div className="grid grid-cols-2 gap-3 mb-8">
           <button
             onClick={() => setTab('available')}
@@ -284,6 +285,7 @@ export default function Orders({ user, onLogout }: { user: User; onLogout: () =>
             )}
           </div>
         )}
+        </div>
       </div>
     </div>
   );

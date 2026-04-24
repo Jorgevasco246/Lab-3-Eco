@@ -17,6 +17,16 @@ export default function MyOrders({ user }: { user: User }) {
     void loadOrders();
   }, [loadOrders]);
 
+  useEffect(() => {
+    const intervalId = window.setInterval(() => {
+      void loadOrders();
+    }, 2000);
+
+    return () => {
+      window.clearInterval(intervalId);
+    };
+  }, [loadOrders]);
+
   const getDestination = (order: any) => {
     if (!order.destination) return null;
 
@@ -74,8 +84,8 @@ export default function MyOrders({ user }: { user: User }) {
   }, [loadOrders]);
 
   return (
-    <div className="min-h-screen bg-gray-50 py-10 px-6 md:px-16">
-      <div className="max-w-3xl mx-auto">
+    <div className="min-h-screen bg-gray-50 py-10 px-6 md:px-16 flex justify-center">
+      <div className="w-full max-w-4xl">
         <h2 className="text-3xl font-black text-gray-900 mb-8">Mis Pedidos</h2>
 
         {orders.length === 0 ? (

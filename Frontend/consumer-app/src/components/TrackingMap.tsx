@@ -20,8 +20,11 @@ const deliveryIcon = L.icon({
 });
 
 const destinationIcon = L.divIcon({
-  html: '📍',
-  iconSize: [30, 30],
+  html: `
+    <div style="display:flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:9999px;background:#ef4444;border:3px solid #ffffff;box-shadow:0 4px 12px rgba(239,68,68,0.35);"></div>
+  `,
+  iconSize: [20, 20],
+  iconAnchor: [10, 10],
   className: 'destination-icon',
 });
 
@@ -44,6 +47,7 @@ interface Props {
 export default function TrackingMap({ orderId, destination, onArrived }: Props) {
   const [deliveryPosition, setDeliveryPosition] = useState<{ lat: number; lng: number } | null>(null);
   const [arrived, setArrived] = useState(false);
+  const [socketStatus, setSocketStatus] = useState<'connecting' | 'connected' | 'disconnected'>('connecting');
   const arrivedRef = useRef(false);
   const onArrivedRef = useRef(onArrived);
 
@@ -105,12 +109,19 @@ export default function TrackingMap({ orderId, destination, onArrived }: Props) 
           checkArrival(lat, lng);
         }
       })
-      .subscribe();
+      .subscribe((status) => {
+        if (status === 'SUBSCRIBED') {
+          setSocketStatus('connected');
+        } else {
+          setSocketStatus('disconnected');
+        }
+      });
 
     void loadPosition();
 
     return () => {
       ignore = true;
+      setSocketStatus('disconnected');
       void supabase.removeChannel(channel);
     };
   }, [orderId, checkArrival]);
@@ -119,6 +130,19 @@ export default function TrackingMap({ orderId, destination, onArrived }: Props) 
 
   return (
     <div className="flex flex-col gap-3">
+      <div className="flex justify-end">
+        <span
+          className={`rounded-full px-3 py-1 text-xs font-black ${
+            socketStatus === 'connected'
+              ? 'bg-green-100 text-green-700'
+              : socketStatus === 'connecting'
+                ? 'bg-yellow-100 text-yellow-700'
+                : 'bg-red-100 text-red-600'
+          }`}
+        >
+          {socketStatus === 'connected' ? 'Socket activo' : socketStatus === 'connecting' ? 'Conectando socket' : 'Socket desconectado'}
+        </span>
+      </div>
       {arrived && (
         <div className="bg-green-50 border-2 border-green-200 text-green-700 px-4 py-3 rounded-2xl font-black text-center">
           El repartidor ha llegado a tu ubicacion.
